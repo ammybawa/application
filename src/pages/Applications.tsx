@@ -1,11 +1,15 @@
 import { useState } from 'react';
 import { Search, Plus, Filter, Edit, Trash2, Eye } from 'lucide-react';
 import clsx from 'clsx';
-import { applications } from '../data/applications';
+import { applications as initialApplications } from '../data/applications';
+import { Application } from '../types';
+import AddApplicationModal from '../components/AddApplicationModal';
 
 export default function Applications() {
+  const [applications, setApplications] = useState<Application[]>(initialApplications);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<'all' | 'IGA' | 'SSO' | 'PAM'>('all');
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const filteredApps = applications.filter(app => {
     const matchesSearch = app.name.toLowerCase().includes(searchQuery.toLowerCase());
@@ -13,12 +17,25 @@ export default function Applications() {
     return matchesSearch && matchesCategory;
   });
 
+  const handleAddApplication = (newApp: Application) => {
+    setApplications(prev => [newApp, ...prev]);
+  };
+
+  const handleDeleteApplication = (id: string) => {
+    if (window.confirm('Are you sure you want to delete this application?')) {
+      setApplications(prev => prev.filter(app => app.id !== id));
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-slate-800">Applications</h1>
-        <button className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+        <button 
+          onClick={() => setIsModalOpen(true)}
+          className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+        >
           <Plus size={18} />
           Add Application
         </button>
@@ -55,6 +72,26 @@ export default function Applications() {
               </button>
             ))}
           </div>
+        </div>
+      </div>
+
+      {/* Stats */}
+      <div className="grid grid-cols-4 gap-4">
+        <div className="bg-white rounded-xl p-4 shadow-sm">
+          <div className="text-2xl font-bold text-slate-800">{applications.length}</div>
+          <div className="text-sm text-slate-500">Total Applications</div>
+        </div>
+        <div className="bg-white rounded-xl p-4 shadow-sm">
+          <div className="text-2xl font-bold text-blue-600">{applications.filter(a => a.category === 'IGA').length}</div>
+          <div className="text-sm text-slate-500">IGA Applications</div>
+        </div>
+        <div className="bg-white rounded-xl p-4 shadow-sm">
+          <div className="text-2xl font-bold text-green-600">{applications.filter(a => a.category === 'SSO').length}</div>
+          <div className="text-sm text-slate-500">SSO Applications</div>
+        </div>
+        <div className="bg-white rounded-xl p-4 shadow-sm">
+          <div className="text-2xl font-bold text-purple-600">{applications.filter(a => a.category === 'PAM').length}</div>
+          <div className="text-sm text-slate-500">PAM Applications</div>
         </div>
       </div>
 
@@ -102,7 +139,12 @@ export default function Applications() {
                   <div className="flex items-center gap-2">
                     <div className="flex-1 max-w-[100px] h-2 bg-slate-200 rounded-full overflow-hidden">
                       <div
-                        className="h-full bg-blue-500 rounded-full"
+                        className={clsx(
+                          'h-full rounded-full',
+                          app.status === 0 ? 'bg-slate-300' :
+                          app.status < 50 ? 'bg-amber-500' :
+                          app.status < 100 ? 'bg-blue-500' : 'bg-green-500'
+                        )}
                         style={{ width: `${app.status}%` }}
                       />
                     </div>
@@ -111,13 +153,17 @@ export default function Applications() {
                 </td>
                 <td className="px-6 py-4">
                   <div className="flex items-center justify-center gap-2">
-                    <button className="p-2 hover:bg-slate-100 rounded-lg transition-colors text-slate-400 hover:text-blue-500">
+                    <button className="p-2 hover:bg-slate-100 rounded-lg transition-colors text-slate-400 hover:text-blue-500" title="View">
                       <Eye size={16} />
                     </button>
-                    <button className="p-2 hover:bg-slate-100 rounded-lg transition-colors text-slate-400 hover:text-green-500">
+                    <button className="p-2 hover:bg-slate-100 rounded-lg transition-colors text-slate-400 hover:text-green-500" title="Edit">
                       <Edit size={16} />
                     </button>
-                    <button className="p-2 hover:bg-slate-100 rounded-lg transition-colors text-slate-400 hover:text-red-500">
+                    <button 
+                      onClick={() => handleDeleteApplication(app.id)}
+                      className="p-2 hover:bg-slate-100 rounded-lg transition-colors text-slate-400 hover:text-red-500" 
+                      title="Delete"
+                    >
                       <Trash2 size={16} />
                     </button>
                   </div>
@@ -131,12 +177,25 @@ export default function Applications() {
           <div className="text-center py-12">
             <div className="text-slate-400 text-lg">No applications found</div>
             <p className="text-slate-500 text-sm mt-2">
-              Try adjusting your search filters
+              Try adjusting your search filters or add a new application
             </p>
+            <button
+              onClick={() => setIsModalOpen(true)}
+              className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              <Plus size={16} className="inline mr-2" />
+              Add Application
+            </button>
           </div>
         )}
       </div>
+
+      {/* Add Application Modal */}
+      <AddApplicationModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onAdd={handleAddApplication}
+      />
     </div>
   );
 }
-
