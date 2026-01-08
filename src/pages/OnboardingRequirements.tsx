@@ -118,7 +118,6 @@ export default function OnboardingRequirements() {
   const [showProductModal, setShowProductModal] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState('SailPoint IdentityIQ');
   const [downloadSuccess, setDownloadSuccess] = useState(false);
-  const [selectedAppForEdit, setSelectedAppForEdit] = useState<ApplicationRequirement | null>(null);
 
   const handleExportPDF = (app: ApplicationRequirement) => {
     const exportData = {

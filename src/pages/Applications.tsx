@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Plus, Filter, Edit, Trash2, Eye, X, ChevronDown, Play } from 'lucide-react';
+import { Search, Plus, Filter, Edit, Trash2, Eye, X, Play } from 'lucide-react';
 import clsx from 'clsx';
 import { Application } from '../types';
 import AddApplicationModal from '../components/AddApplicationModal';
