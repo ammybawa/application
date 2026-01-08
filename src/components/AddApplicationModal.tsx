@@ -21,17 +21,13 @@ const gradientOptions = [
   { value: 'gradient-teal', label: 'Teal', color: '#14b8a6' },
 ];
 
-const databaseTypes = [
+const databaseTypes: { value: 'mysql' | 'oracle' | 'sqlserver' | 'activedirectory' | 'salesforce' | 'custom'; label: string }[] = [
   { value: 'mysql', label: 'MySQL' },
   { value: 'oracle', label: 'Oracle' },
   { value: 'sqlserver', label: 'SQL Server' },
-  { value: 'postgresql', label: 'PostgreSQL' },
-  { value: 'mongodb', label: 'MongoDB' },
   { value: 'activedirectory', label: 'Active Directory' },
-  { value: 'ldap', label: 'LDAP' },
   { value: 'salesforce', label: 'Salesforce' },
-  { value: 'servicenow', label: 'ServiceNow' },
-  { value: 'custom', label: 'Custom / API' },
+  { value: 'custom', label: 'Custom / API (LDAP, ServiceNow, etc.)' },
 ];
 
 const categories = [
@@ -41,10 +37,19 @@ const categories = [
 ];
 
 export default function AddApplicationModal({ isOpen, onClose, onAdd }: AddApplicationModalProps) {
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<{
+    name: string;
+    type: 'mysql' | 'oracle' | 'sqlserver' | 'activedirectory' | 'salesforce' | 'custom';
+    category: 'IGA' | 'SSO' | 'PAM';
+    gradient: string;
+    description: string;
+    owner: string;
+    hostname: string;
+    port: string;
+  }>({
     name: '',
     type: 'mysql',
-    category: 'IGA' as 'IGA' | 'SSO' | 'PAM',
+    category: 'IGA',
     gradient: 'gradient-blue',
     description: '',
     owner: '',
@@ -90,8 +95,8 @@ export default function AddApplicationModal({ isOpen, onClose, onAdd }: AddAppli
     // Reset form
     setFormData({
       name: '',
-      type: 'mysql',
-      category: 'IGA',
+      type: 'mysql' as const,
+      category: 'IGA' as const,
       gradient: 'gradient-blue',
       description: '',
       owner: '',
@@ -179,7 +184,7 @@ export default function AddApplicationModal({ isOpen, onClose, onAdd }: AddAppli
                 <div className="relative">
                   <select
                     value={formData.type}
-                    onChange={(e) => setFormData({ ...formData, type: e.target.value })}
+                    onChange={(e) => setFormData({ ...formData, type: e.target.value as 'mysql' | 'oracle' | 'sqlserver' | 'activedirectory' | 'salesforce' | 'custom' })}
                     className="w-full px-4 py-3 border border-slate-300 rounded-lg appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
                   >
                     {databaseTypes.map((db) => (
