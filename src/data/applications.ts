@@ -1,143 +1,16 @@
 import { Application, OnboardingStatus } from '../types';
 
-export const applications: Application[] = [
-  {
-    id: 'active-directory',
-    name: 'Active Directory',
-    icon: 'windows',
-    type: 'activedirectory',
-    status: 0,
-    gradient: 'gradient-orange',
-    category: 'IGA'
-  },
-  {
-    id: 'ariba',
-    name: 'Ariba',
-    icon: 'mysql',
-    type: 'mysql',
-    status: 6,
-    gradient: 'gradient-cyan',
-    category: 'IGA'
-  },
-  {
-    id: 'database-test2',
-    name: 'Database-Test2',
-    icon: 'sqlserver',
-    type: 'sqlserver',
-    status: 0,
-    gradient: 'gradient-coral',
-    category: 'IGA'
-  },
-  {
-    id: 'epic',
-    name: 'EPIC',
-    icon: 'mysql',
-    type: 'mysql',
-    status: 0,
-    gradient: 'gradient-pink',
-    category: 'IGA'
-  },
-  {
-    id: 'hcm',
-    name: 'HCM',
-    icon: 'oracle',
-    type: 'oracle',
-    status: 0,
-    gradient: 'gradient-purple',
-    category: 'IGA'
-  },
-  {
-    id: 'salesforce',
-    name: 'Salesforce',
-    icon: 'salesforce',
-    type: 'salesforce',
-    status: 0,
-    gradient: 'gradient-blue',
-    category: 'IGA'
-  },
-  {
-    id: 'trakk',
-    name: 'Trakk',
-    icon: 'sap',
-    type: 'custom',
-    status: 0,
-    gradient: 'gradient-brown',
-    category: 'IGA'
-  },
-  {
-    id: 'workforce',
-    name: 'WorkForce',
-    icon: 'workforce',
-    type: 'custom',
-    status: 0,
-    gradient: 'gradient-slate',
-    category: 'IGA'
-  },
-  // SSO Applications
-  {
-    id: 'okta-sso',
-    name: 'Okta',
-    icon: 'custom',
-    type: 'custom',
-    status: 0,
-    gradient: 'gradient-blue',
-    category: 'SSO'
-  },
-  {
-    id: 'azure-ad',
-    name: 'Azure AD',
-    icon: 'custom',
-    type: 'custom',
-    status: 0,
-    gradient: 'gradient-cyan',
-    category: 'SSO'
-  },
-  {
-    id: 'ping-identity',
-    name: 'Ping Identity',
-    icon: 'custom',
-    type: 'custom',
-    status: 0,
-    gradient: 'gradient-orange',
-    category: 'SSO'
-  },
-  // PAM Applications
-  {
-    id: 'cyberark',
-    name: 'CyberArk',
-    icon: 'custom',
-    type: 'custom',
-    status: 0,
-    gradient: 'gradient-purple',
-    category: 'PAM'
-  },
-  {
-    id: 'servicenow-pam',
-    name: 'ServiceNow',
-    icon: 'custom',
-    type: 'custom',
-    status: 0,
-    gradient: 'gradient-green',
-    category: 'PAM'
-  },
-  {
-    id: 'beyondtrust',
-    name: 'BeyondTrust',
-    icon: 'custom',
-    type: 'custom',
-    status: 0,
-    gradient: 'gradient-teal',
-    category: 'PAM'
-  }
-];
+// Start with an empty list - add applications through the UI
+export const applications: Application[] = [];
 
+// Onboarding status counters - will update as you add applications
 export const onboardingStatus: OnboardingStatus = {
-  identified: 5,
-  informationCollectionInProgress: 1,
+  identified: 0,
+  informationCollectionInProgress: 0,
   informationCollectionCompleted: 0,
   onboardingCompleted: 0,
-  onboardingFailed: 2,
-  onboardedOffline: 1
+  onboardingFailed: 0,
+  onboardedOffline: 0
 };
 
 export const productTypes = ['IGA, SSO, PAM', 'IGA Only', 'SSO Only', 'PAM Only'];
