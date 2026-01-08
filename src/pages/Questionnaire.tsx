@@ -1,6 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { ChevronDown, Info, Eye, EyeOff, Upload, Download, Plus, ArrowLeft, Trash2 } from 'lucide-react';
+import { ChevronDown, Info, Eye, EyeOff, Download, Plus, ArrowLeft } from 'lucide-react';
 import clsx from 'clsx';
 
 interface FormData {
@@ -97,13 +96,12 @@ const tabs = [
 ];
 
 export default function Questionnaire() {
-  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('general');
   const [formData, setFormData] = useState<FormData>(initialFormData);
   const [showPassword, setShowPassword] = useState(false);
   const [selectedIgaProduct, setSelectedIgaProduct] = useState('SailPoint IdentityIQ');
-  const [attributeMappings, setAttributeMappings] = useState<AttributeMapping[]>(initialMappings);
-  const [entitlements, setEntitlements] = useState<Entitlement[]>(initialEntitlements);
+  const [attributeMappings] = useState<AttributeMapping[]>(initialMappings);
+  const [entitlements] = useState<Entitlement[]>(initialEntitlements);
   const [showCompletionPage, setShowCompletionPage] = useState(false);
   const [confirmOffline, setConfirmOffline] = useState(false);
 

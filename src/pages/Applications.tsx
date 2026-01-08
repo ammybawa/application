@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Search, Plus, Filter, MoreVertical, Edit, Trash2, Eye } from 'lucide-react';
+import { Search, Plus, Filter, Edit, Trash2, Eye } from 'lucide-react';
 import clsx from 'clsx';
 import { applications } from '../data/applications';
 

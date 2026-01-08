@@ -1,10 +1,6 @@
 import { useState } from 'react';
 import {
-  PieChart,
-  Pie,
-  Cell,
   ResponsiveContainer,
-  Legend,
   Tooltip,
   RadarChart,
   PolarGrid,
