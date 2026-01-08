@@ -1,7 +1,14 @@
 import { useState } from 'react';
-import { RefreshCw, X, Download, FolderOpen, FileText, Edit, FileDown, ChevronDown, Info, Check } from 'lucide-react';
+import { RefreshCw, X, Download, FolderOpen, FileText, Edit, FileDown, ChevronDown, Info, Check, Plus } from 'lucide-react';
 import clsx from 'clsx';
 import { generateOnboardingPDF, sampleOnboardingData } from '../utils/pdfExport';
+import { applications as globalApplications } from '../data/applications';
+import { Application } from '../types';
+
+interface DocumentCategory {
+  name: string;
+  files: { name: string; type: string }[];
+}
 
 interface ApplicationRequirement {
   id: string;
@@ -13,111 +20,42 @@ interface ApplicationRequirement {
   documents: DocumentCategory[];
 }
 
-interface DocumentCategory {
-  name: string;
-  files: { name: string; type: string }[];
-}
+// Convert global applications to the onboarding requirements format
+const convertToRequirements = (apps: Application[]): ApplicationRequirement[] => {
+  return apps.map((app, index) => ({
+    id: `IDXP-${String(index + 1).padStart(2, '0')}`,
+    displayName: app.name,
+    icon: app.type,
+    iconBg: getIconBg(app.gradient),
+    status: app.status === 0 ? 'Identified' : 
+            app.status < 50 ? 'Information Collection In Progress' : 
+            app.status < 100 ? 'Information Collection Completed' : 'Onboarding Completed',
+    progress: app.status,
+    documents: []
+  }));
+};
 
-const applications: ApplicationRequirement[] = [
-  {
-    id: 'IDXP-04',
-    displayName: 'Active Directory',
-    icon: 'windows',
-    iconBg: 'bg-blue-50',
-    status: '',
-    progress: 0,
-    documents: []
-  },
-  {
-    id: 'IDXP-37',
-    displayName: 'Ariba',
-    icon: 'csv',
-    iconBg: 'bg-green-50',
-    status: 'Information Collection In Progress',
-    progress: 53,
-    documents: [
-      { name: 'Access Request Processes', files: [] },
-      { name: 'Access Provisioning Processes', files: [
-        { name: 'Ariba_Manual Provisioning_Run Book1', type: 'docx' },
-        { name: 'Ariba_Manual Provisioning_ Run Book2', type: 'docx' }
-      ]},
-      { name: 'CSV Files', files: [
-        { name: 'Ariba Entitlements Metadata', type: 'xlsx' },
-        { name: 'Ariba_Application Metadata', type: 'xlsx' },
-        { name: 'Ariba_Roles', type: 'xlsx' }
-      ]},
-      { name: 'SSO (SAML) metadata configurations', files: [] },
-      { name: 'Any Other Documents', files: [] }
-    ]
-  },
-  {
-    id: 'IDXP-17',
-    displayName: 'Database-MSSQLSERVER-H-MASCDB00.mydomain',
-    icon: 'sqlserver',
-    iconBg: 'bg-red-50',
-    status: '',
-    progress: 0,
-    documents: []
-  },
-  {
-    id: 'IDXP-18',
-    displayName: 'Database-MSSQLSERVER-H-MASEPD00.mydomain',
-    icon: 'mysql',
-    iconBg: 'bg-cyan-50',
-    status: '',
-    progress: 0,
-    documents: []
-  },
-  {
-    id: 'IDXP-19',
-    displayName: 'Database-SCOM-H-MASCOMDB.mydomainCom',
-    icon: 'oracle',
-    iconBg: 'bg-red-50',
-    status: '',
-    progress: 0,
-    documents: []
-  },
-  {
-    id: 'IDXP-20',
-    displayName: 'Database-SYNAPPS-H-MASAREV00.mydomainCom',
-    icon: 'salesforce',
-    iconBg: 'bg-blue-50',
-    status: '',
-    progress: 0,
-    documents: []
-  },
-  {
-    id: 'IDXP-33',
-    displayName: 'Database-Test2',
-    icon: 'sap',
-    iconBg: 'bg-blue-50',
-    status: 'Identified',
-    progress: 0,
-    documents: []
-  },
-  {
-    id: 'IDXP-31',
-    displayName: 'EPIC',
-    icon: 'spacelift',
-    iconBg: 'bg-slate-100',
-    status: 'Identified',
-    progress: 0,
-    documents: []
-  },
-  {
-    id: 'IDXP-03',
-    displayName: 'HCM',
-    icon: 'servicenow',
-    iconBg: 'bg-green-50',
-    status: '',
-    progress: 0,
-    documents: []
+const getIconBg = (gradient: string): string => {
+  switch (gradient) {
+    case 'gradient-blue': return 'bg-blue-50';
+    case 'gradient-cyan': return 'bg-cyan-50';
+    case 'gradient-orange': return 'bg-orange-50';
+    case 'gradient-purple': return 'bg-purple-50';
+    case 'gradient-pink': return 'bg-pink-50';
+    case 'gradient-coral': return 'bg-red-50';
+    case 'gradient-green': return 'bg-green-50';
+    case 'gradient-brown': return 'bg-amber-50';
+    case 'gradient-slate': return 'bg-slate-100';
+    case 'gradient-teal': return 'bg-teal-50';
+    default: return 'bg-slate-50';
   }
-];
+};
 
-const AppIcon = ({ icon }: { icon: string }) => {
+const AppIcon = ({ icon, name }: { icon: string; name: string }) => {
+  const firstChar = name.charAt(0).toUpperCase();
+  
   switch (icon) {
-    case 'windows':
+    case 'activedirectory':
       return (
         <div className="flex flex-col items-center">
           <svg viewBox="0 0 48 48" className="w-8 h-8">
@@ -127,26 +65,6 @@ const AppIcon = ({ icon }: { icon: string }) => {
             <rect fill="#ffb900" x="26" y="26" width="20" height="20" />
           </svg>
           <span className="text-[8px] text-blue-600 mt-1">Active Directory</span>
-        </div>
-      );
-    case 'csv':
-      return (
-        <div className="w-10 h-12 border-2 border-teal-500 rounded flex flex-col items-center justify-center bg-white">
-          <div className="grid grid-cols-3 gap-0.5 mb-1">
-            {[...Array(9)].map((_, i) => (
-              <div key={i} className="w-1.5 h-1.5 bg-teal-500"></div>
-            ))}
-          </div>
-          <span className="text-teal-600 text-[8px] font-bold">CSV</span>
-        </div>
-      );
-    case 'sqlserver':
-      return (
-        <div className="flex flex-col items-center">
-          <div className="text-center">
-            <div className="text-[10px] text-slate-500">SQL</div>
-            <div className="text-[8px] text-slate-400">Server</div>
-          </div>
         </div>
       );
     case 'mysql':
@@ -160,8 +78,16 @@ const AppIcon = ({ icon }: { icon: string }) => {
       return (
         <div className="text-center">
           <div className="text-[#c74634] font-bold text-xs">ORACLE</div>
-          <div className="text-slate-500 text-[7px] leading-tight">HUMAN CAPITAL</div>
-          <div className="text-slate-500 text-[7px] leading-tight">MANAGEMENT</div>
+          <div className="text-slate-500 text-[7px] leading-tight">DATABASE</div>
+        </div>
+      );
+    case 'sqlserver':
+      return (
+        <div className="flex flex-col items-center">
+          <div className="text-center">
+            <div className="text-[10px] text-slate-500 font-semibold">SQL</div>
+            <div className="text-[8px] text-slate-400">Server</div>
+          </div>
         </div>
       );
     case 'salesforce':
@@ -170,32 +96,27 @@ const AppIcon = ({ icon }: { icon: string }) => {
           salesforce
         </div>
       );
-    case 'sap':
-      return <span className="text-[#0066b3] font-bold text-xl">SAP</span>;
-    case 'spacelift':
+    case 'custom':
+    default:
       return (
-        <div className="flex flex-col items-center">
-          <div className="w-10 h-10 bg-slate-700 rounded-full flex items-center justify-center">
-            <span className="text-teal-400 text-lg">🚀</span>
-          </div>
-          <span className="text-[8px] text-slate-500 mt-1">spacelift</span>
+        <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-lg flex items-center justify-center text-white font-bold text-lg">
+          {firstChar}
         </div>
       );
-    case 'servicenow':
-      return <span className="text-slate-600 font-medium text-xs">servicenow</span>;
-    default:
-      return <div className="w-8 h-8 bg-slate-200 rounded"></div>;
   }
 };
 
 export default function OnboardingRequirements() {
+  // Use global applications, converted to the requirements format
+  const [applications] = useState<ApplicationRequirement[]>(
+    convertToRequirements(globalApplications)
+  );
   const [selectedApp, setSelectedApp] = useState<ApplicationRequirement | null>(null);
   const [showProductModal, setShowProductModal] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState('SailPoint IdentityIQ');
   const [downloadSuccess, setDownloadSuccess] = useState(false);
 
   const handleExportPDF = (app: ApplicationRequirement) => {
-    // Use sample data for demo, in real app this would come from the database
     const exportData = {
       ...sampleOnboardingData,
       applicationName: app.displayName
@@ -223,82 +144,115 @@ export default function OnboardingRequirements() {
         </button>
       </div>
 
-      {/* Table */}
-      <div className="bg-white rounded-xl shadow-sm overflow-hidden">
-        <table className="w-full">
-          <thead className="bg-slate-50 border-b border-slate-100">
-            <tr>
-              <th className="px-6 py-4 text-left text-sm font-medium text-slate-600">Application ID</th>
-              <th className="px-6 py-4 text-left text-sm font-medium text-slate-600">Application Display Name</th>
-              <th className="px-6 py-4 text-left text-sm font-medium text-slate-600">Status</th>
-              <th className="px-6 py-4 text-center text-sm font-medium text-slate-600">Requirements</th>
-            </tr>
-          </thead>
-          <tbody>
-            {applications.map((app) => (
-              <tr key={app.id} className="border-b border-slate-50 hover:bg-slate-50 transition-colors">
-                <td className="px-6 py-4 text-sm text-slate-600">{app.id}</td>
-                <td className="px-6 py-4">
-                  <div className="flex items-center gap-3">
-                    <div className={clsx('w-14 h-14 rounded-lg flex items-center justify-center', app.iconBg)}>
-                      <AppIcon icon={app.icon} />
-                    </div>
-                    <span className="text-sm text-slate-700">{app.displayName}</span>
-                  </div>
-                </td>
-                <td className="px-6 py-4">
-                  {app.status && (
-                    <div className="flex items-center gap-3">
-                      <span className="text-sm text-slate-600">{app.status}</span>
-                      {app.progress > 0 && (
-                        <div className="flex items-center gap-2">
-                          <span className={clsx(
-                            'px-2 py-0.5 rounded-full text-xs font-medium',
-                            app.progress > 50 ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700'
-                          )}>
-                            {app.progress} %
-                          </span>
-                          <div className="w-24 h-2 bg-slate-200 rounded-full overflow-hidden">
-                            <div 
-                              className={clsx('h-full rounded-full', app.progress > 50 ? 'bg-amber-400' : 'bg-red-400')}
-                              style={{ width: `${app.progress}%` }}
-                            />
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </td>
-                <td className="px-6 py-4">
-                  <div className="flex items-center justify-center gap-2">
-                    <button 
-                      onClick={() => setSelectedApp(app)}
-                      className="p-2 hover:bg-amber-100 rounded-lg transition-colors"
-                      title="View Documents"
-                    >
-                      <FolderOpen size={20} className="text-amber-600" />
-                    </button>
-                    <button 
-                      onClick={() => setShowProductModal(true)}
-                      className="p-2 hover:bg-green-100 rounded-lg transition-colors"
-                      title="Edit"
-                    >
-                      <Edit size={20} className="text-green-600" />
-                    </button>
-                    <button 
-                      onClick={() => handleExportPDF(app)}
-                      className="p-2 hover:bg-red-100 rounded-lg transition-colors" 
-                      title="Export PDF"
-                    >
-                      <FileDown size={20} className="text-red-600" />
-                    </button>
-                  </div>
-                </td>
+      {/* Empty State */}
+      {applications.length === 0 ? (
+        <div className="bg-white rounded-xl shadow-sm p-12 text-center">
+          <div className="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <FolderOpen size={40} className="text-slate-400" />
+          </div>
+          <h3 className="text-lg font-semibold text-slate-700 mb-2">No Applications Yet</h3>
+          <p className="text-slate-500 mb-6">
+            Add applications through the Applications page to see them here for onboarding.
+          </p>
+          <a 
+            href="/applications" 
+            className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            <Plus size={18} />
+            Go to Applications
+          </a>
+        </div>
+      ) : (
+        /* Table */
+        <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+          <table className="w-full">
+            <thead className="bg-slate-50 border-b border-slate-100">
+              <tr>
+                <th className="px-6 py-4 text-left text-sm font-medium text-slate-600">Application ID</th>
+                <th className="px-6 py-4 text-left text-sm font-medium text-slate-600">Application Display Name</th>
+                <th className="px-6 py-4 text-left text-sm font-medium text-slate-600">Status</th>
+                <th className="px-6 py-4 text-center text-sm font-medium text-slate-600">Requirements</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody>
+              {applications.map((app) => (
+                <tr key={app.id} className="border-b border-slate-50 hover:bg-slate-50 transition-colors">
+                  <td className="px-6 py-4 text-sm text-slate-600">{app.id}</td>
+                  <td className="px-6 py-4">
+                    <div className="flex items-center gap-3">
+                      <div className={clsx('w-14 h-14 rounded-lg flex items-center justify-center', app.iconBg)}>
+                        <AppIcon icon={app.icon} name={app.displayName} />
+                      </div>
+                      <span className="text-sm text-slate-700">{app.displayName}</span>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4">
+                    {app.status && (
+                      <div className="flex items-center gap-3">
+                        <span className={clsx(
+                          'px-2.5 py-1 text-xs font-medium rounded-full',
+                          app.status === 'Identified' && 'bg-blue-100 text-blue-700',
+                          app.status === 'Information Collection In Progress' && 'bg-amber-100 text-amber-700',
+                          app.status === 'Information Collection Completed' && 'bg-cyan-100 text-cyan-700',
+                          app.status === 'Onboarding Completed' && 'bg-green-100 text-green-700'
+                        )}>
+                          {app.status}
+                        </span>
+                        {app.progress > 0 && (
+                          <div className="flex items-center gap-2">
+                            <span className={clsx(
+                              'px-2 py-0.5 rounded-full text-xs font-medium',
+                              app.progress >= 100 ? 'bg-green-100 text-green-700' :
+                              app.progress > 50 ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700'
+                            )}>
+                              {app.progress}%
+                            </span>
+                            <div className="w-24 h-2 bg-slate-200 rounded-full overflow-hidden">
+                              <div 
+                                className={clsx(
+                                  'h-full rounded-full',
+                                  app.progress >= 100 ? 'bg-green-500' :
+                                  app.progress > 50 ? 'bg-amber-400' : 'bg-red-400'
+                                )}
+                                style={{ width: `${app.progress}%` }}
+                              />
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="flex items-center justify-center gap-2">
+                      <button 
+                        onClick={() => setSelectedApp(app)}
+                        className="p-2 hover:bg-amber-100 rounded-lg transition-colors"
+                        title="View Documents"
+                      >
+                        <FolderOpen size={20} className="text-amber-600" />
+                      </button>
+                      <button 
+                        onClick={() => setShowProductModal(true)}
+                        className="p-2 hover:bg-green-100 rounded-lg transition-colors"
+                        title="Edit"
+                      >
+                        <Edit size={20} className="text-green-600" />
+                      </button>
+                      <button 
+                        onClick={() => handleExportPDF(app)}
+                        className="p-2 hover:bg-red-100 rounded-lg transition-colors" 
+                        title="Export PDF"
+                      >
+                        <FileDown size={20} className="text-red-600" />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
 
       {/* Document Sidebar */}
       {selectedApp && (
@@ -342,7 +296,11 @@ export default function OnboardingRequirements() {
                   </div>
                 ))
               ) : (
-                <p className="text-sm text-slate-400">No documents uploaded yet.</p>
+                <div className="text-center py-8">
+                  <FileText size={40} className="text-slate-300 mx-auto mb-2" />
+                  <p className="text-sm text-slate-400">No documents uploaded yet.</p>
+                  <p className="text-xs text-slate-400 mt-1">Upload documents via the Questionnaire</p>
+                </div>
               )}
             </div>
           </div>
@@ -380,7 +338,9 @@ export default function OnboardingRequirements() {
               </button>
               <button 
                 onClick={() => {
-                  handleExportPDF(applications[1]); // Export Ariba as example
+                  if (applications.length > 0) {
+                    handleExportPDF(applications[0]);
+                  }
                   setShowProductModal(false);
                 }}
                 className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"

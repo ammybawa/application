@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Search, Truck, FileText, Users } from 'lucide-react';
+import { Search, Truck, FileText, Users, Plus } from 'lucide-react';
 import clsx from 'clsx';
 import { applications } from '../data/applications';
 import { Application } from '../types';
@@ -228,11 +228,23 @@ export default function ApplicationOnboarding() {
 
       {/* Empty State */}
       {filteredApps.length === 0 && (
-        <div className="text-center py-12 bg-white rounded-xl">
-          <div className="text-slate-400 text-lg">No applications found</div>
-          <p className="text-slate-500 text-sm mt-2">
-            Try adjusting your search or switch tabs
+        <div className="text-center py-12 bg-white rounded-xl shadow-sm">
+          <div className="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <FileText size={40} className="text-slate-400" />
+          </div>
+          <div className="text-slate-600 text-lg font-medium mb-2">No {activeTab} Applications Found</div>
+          <p className="text-slate-500 text-sm mt-2 mb-6">
+            {searchQuery ? 'Try adjusting your search' : 'Add applications through the Applications page to see them here'}
           </p>
+          {!searchQuery && (
+            <a 
+              href="/applications" 
+              className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              <Plus size={18} />
+              Add Application
+            </a>
+          )}
         </div>
       )}
     </div>
