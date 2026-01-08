@@ -573,9 +573,20 @@ export default function Chatbot() {
         </button>
       )}
 
+      {/* Overlay to close chat when clicking outside */}
+      {isOpen && (
+        <div 
+          className="fixed inset-0 z-40"
+          onClick={() => setIsOpen(false)}
+        />
+      )}
+
       {/* Chat Window */}
       {isOpen && (
-        <div className="fixed bottom-6 right-6 w-[420px] h-[650px] bg-white rounded-2xl shadow-2xl flex flex-col overflow-hidden z-50 border border-slate-200">
+        <div 
+          className="fixed bottom-6 right-6 w-[420px] h-[650px] bg-white rounded-2xl shadow-2xl flex flex-col overflow-hidden z-50 border border-slate-200"
+          onClick={(e) => e.stopPropagation()}>
+        
           {/* Header */}
           <div className="bg-gradient-to-r from-slate-700 to-slate-800 text-white p-4 flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -590,8 +601,8 @@ export default function Chatbot() {
                 </div>
               </div>
             </div>
-            <div className="flex items-center gap-2">
-              <button className="p-2 hover:bg-white/10 rounded-lg transition-colors">
+            <div className="flex items-center gap-1">
+              <button className="p-2 hover:bg-white/10 rounded-lg transition-colors" title="Sound">
                 <Volume2 size={18} />
               </button>
               <button 
@@ -602,10 +613,15 @@ export default function Chatbot() {
                 <Power size={18} />
               </button>
               <button
-                onClick={() => setIsOpen(false)}
-                className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setIsOpen(false);
+                }}
+                className="p-2 hover:bg-red-500/30 rounded-lg transition-colors ml-1"
+                title="Close chat"
               >
-                <X size={18} />
+                <X size={20} />
               </button>
             </div>
           </div>
