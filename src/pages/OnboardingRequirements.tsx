@@ -1,8 +1,9 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { RefreshCw, X, Download, FolderOpen, FileText, Edit, FileDown, ChevronDown, Info, Check, Plus } from 'lucide-react';
 import clsx from 'clsx';
 import { generateOnboardingPDF, sampleOnboardingData } from '../utils/pdfExport';
-import { applications as globalApplications } from '../data/applications';
+import { useApplications } from '../context/ApplicationContext';
 import { Application } from '../types';
 
 interface DocumentCategory {
@@ -107,14 +108,17 @@ const AppIcon = ({ icon, name }: { icon: string; name: string }) => {
 };
 
 export default function OnboardingRequirements() {
+  const navigate = useNavigate();
+  const { applications: globalApps } = useApplications();
+  
   // Use global applications, converted to the requirements format
-  const [applications] = useState<ApplicationRequirement[]>(
-    convertToRequirements(globalApplications)
-  );
+  const applications = convertToRequirements(globalApps);
+  
   const [selectedApp, setSelectedApp] = useState<ApplicationRequirement | null>(null);
   const [showProductModal, setShowProductModal] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState('SailPoint IdentityIQ');
   const [downloadSuccess, setDownloadSuccess] = useState(false);
+  const [selectedAppForEdit, setSelectedAppForEdit] = useState<ApplicationRequirement | null>(null);
 
   const handleExportPDF = (app: ApplicationRequirement) => {
     const exportData = {
@@ -224,20 +228,26 @@ export default function OnboardingRequirements() {
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center justify-center gap-2">
-                      <button 
-                        onClick={() => setSelectedApp(app)}
-                        className="p-2 hover:bg-amber-100 rounded-lg transition-colors"
-                        title="View Documents"
-                      >
-                        <FolderOpen size={20} className="text-amber-600" />
-                      </button>
-                      <button 
-                        onClick={() => setShowProductModal(true)}
-                        className="p-2 hover:bg-green-100 rounded-lg transition-colors"
-                        title="Edit"
-                      >
-                        <Edit size={20} className="text-green-600" />
-                      </button>
+                    <button 
+                      onClick={() => setSelectedApp(app)}
+                      className="p-2 hover:bg-amber-100 rounded-lg transition-colors"
+                      title="View Documents"
+                    >
+                      <FolderOpen size={20} className="text-amber-600" />
+                    </button>
+                    <button 
+                      onClick={() => {
+                        // Find the original app ID and navigate to questionnaire
+                        const originalApp = globalApps.find(a => a.name === app.displayName);
+                        if (originalApp) {
+                          navigate(`/questionnaire/${originalApp.id}`);
+                        }
+                      }}
+                      className="p-2 hover:bg-green-100 rounded-lg transition-colors"
+                      title="Edit / Continue Onboarding"
+                    >
+                      <Edit size={20} className="text-green-600" />
+                    </button>
                       <button 
                         onClick={() => handleExportPDF(app)}
                         className="p-2 hover:bg-red-100 rounded-lg transition-colors" 

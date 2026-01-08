@@ -1,7 +1,8 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Search, Truck, FileText, Users, Plus } from 'lucide-react';
 import clsx from 'clsx';
-import { applications } from '../data/applications';
+import { useApplications } from '../context/ApplicationContext';
 import { Application } from '../types';
 
 const AppIcon = ({ type, name }: { type: string; name: string }) => {
@@ -164,6 +165,8 @@ const ApplicationCard = ({ app, onStartOnboarding }: { app: Application; onStart
 };
 
 export default function ApplicationOnboarding() {
+  const navigate = useNavigate();
+  const { applications } = useApplications();
   const [activeTab, setActiveTab] = useState<'IGA' | 'SSO' | 'PAM'>('IGA');
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -173,9 +176,8 @@ export default function ApplicationOnboarding() {
   );
 
   const handleStartOnboarding = (app: Application) => {
-    console.log('Starting onboarding for:', app.name);
-    // The chatbot can be triggered via a global state or event
-    alert(`Click the chat icon in the bottom right to start onboarding ${app.name} with Epiphany!`);
+    // Navigate to questionnaire with this app
+    navigate(`/questionnaire/${app.id}`);
   };
 
   return (
