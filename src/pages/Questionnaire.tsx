@@ -1,6 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
 import { ChevronDown, Info, Eye, EyeOff, Download, Plus, ArrowLeft } from 'lucide-react';
 import clsx from 'clsx';
+import { useApplications } from '../context/ApplicationContext';
 
 interface FormData {
   displayName: string;
@@ -46,46 +48,37 @@ interface Entitlement {
   isRequestable: boolean;
 }
 
-const initialFormData: FormData = {
-  displayName: 'Ariba',
-  description: 'Ariba SAP Application',
-  applicationOwnerEmail: 'jsmith@cybersolve.com',
-  complianceRequirements: ['SOX'],
-  databaseType: 'MySQL',
-  hostname: 'mysql-targetapp1.c0druaxqetmo.us-east-1.rds.amazonaws.com',
-  portNumber: '3306',
-  databaseName: 'trakk',
-  serviceAccountName: 'admin',
-  serviceAccountPassword: 'password123',
+// Empty initial form data - will be populated from app context
+const getEmptyFormData = (appName: string = ''): FormData => ({
+  displayName: appName,
+  description: '',
+  applicationOwnerEmail: '',
+  complianceRequirements: [],
+  databaseType: '',
+  hostname: '',
+  portNumber: '',
+  databaseName: '',
+  serviceAccountName: '',
+  serviceAccountPassword: '',
   accountsReconciliationType: 'query',
-  accountsReconciliationQuery: 'select * from users left outer join userscapabilities on users.id = userscapabilities.id order by users.id',
+  accountsReconciliationQuery: '',
   accountDisablementType: 'query',
-  accountDisablementQuery: 'update users set IIQDisabled=true where id=?',
+  accountDisablementQuery: '',
   accountModificationType: 'query',
-  accountModificationQuery: 'update users set lastname=?,email=? where id=?',
+  accountModificationQuery: '',
   accountUnlockType: 'query',
-  accountUnlockQuery: 'update users set IIQDisabled=false where id=?',
+  accountUnlockQuery: '',
   entitlementsReconciliationType: 'query',
-  entitlementsReconciliationQuery: 'select * from capabilities',
+  entitlementsReconciliationQuery: '',
   assignEntitlementsType: 'query',
-  assignEntitlementsQuery: 'insert into userscapabilities (id,capability) values (?,?)',
+  assignEntitlementsQuery: '',
   accountCreationType: 'query',
-  accountCreationQuery: 'insert into users (id,firstname,lastname,email) values (?,?,?,?)',
-};
+  accountCreationQuery: '',
+});
 
-const initialMappings: AttributeMapping[] = [
-  { igaAttribute: 'Email', appAttribute: 'Email Address', igaValue: 'jhsmith@cybersolve.com', appValue: 'jhsmith@cybersolve.com' },
-  { igaAttribute: 'Last Name', appAttribute: 'familyName', igaValue: 'Smith', appValue: 'Smith' },
-  { igaAttribute: 'Username', appAttribute: 'sAMAccountName', igaValue: 'jhsmith', appValue: 'jhsmith' },
-];
+const initialMappings: AttributeMapping[] = [];
 
-const initialEntitlements: Entitlement[] = [
-  { id: '1', name: 'Ariba Accounts', nameInIGA: '', description: 'This capability provides user with Accounts access', isCertifiable: true, isPrivileged: false, isRequestable: true },
-  { id: '2', name: 'Ariba Admin', nameInIGA: '', description: 'This capability provides user with Admin access', isCertifiable: false, isPrivileged: true, isRequestable: true },
-  { id: '3', name: 'Ariba Business Administration', nameInIGA: '', description: 'This capability provides user with Business Administration access', isCertifiable: true, isPrivileged: false, isRequestable: true },
-  { id: '4', name: 'Ariba Business Development', nameInIGA: '', description: 'This capability provides user with Business Development access', isCertifiable: false, isPrivileged: true, isRequestable: true },
-  { id: '5', name: 'Ariba CyberSecurity', nameInIGA: '', description: 'This capability provides user with CyberSecurity access', isCertifiable: true, isPrivileged: false, isRequestable: true },
-];
+const initialEntitlements: Entitlement[] = [];
 
 const tabs = [
   { id: 'general', label: 'General Information' },
@@ -96,14 +89,30 @@ const tabs = [
 ];
 
 export default function Questionnaire() {
+  const { appId } = useParams<{ appId: string }>();
+  const { getApplication } = useApplications();
+  
+  // Get the application from context if appId is provided
+  const application = appId ? getApplication(appId) : null;
+  
   const [activeTab, setActiveTab] = useState('general');
-  const [formData, setFormData] = useState<FormData>(initialFormData);
+  const [formData, setFormData] = useState<FormData>(getEmptyFormData(application?.name || ''));
   const [showPassword, setShowPassword] = useState(false);
   const [selectedIgaProduct, setSelectedIgaProduct] = useState('SailPoint IdentityIQ');
   const [attributeMappings] = useState<AttributeMapping[]>(initialMappings);
   const [entitlements] = useState<Entitlement[]>(initialEntitlements);
   const [showCompletionPage, setShowCompletionPage] = useState(false);
   const [confirmOffline, setConfirmOffline] = useState(false);
+
+  // Update form data when application changes
+  useEffect(() => {
+    if (application) {
+      setFormData(prev => ({
+        ...prev,
+        displayName: application.name,
+      }));
+    }
+  }, [application]);
 
   const updateFormData = (field: keyof FormData, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -204,8 +213,8 @@ export default function Questionnaire() {
   const renderAppMetadata = () => (
     <div className="space-y-8">
       <div>
-        <h3 className="text-lg font-medium text-slate-800 mb-2">Define the mapping between attributes in your Application <span className="font-semibold">Ariba</span> and IGA</h3>
-        <p className="text-slate-600 mb-6">E.g. "Email Address" in your Application Ariba maps to "Email" in IGA.</p>
+        <h3 className="text-lg font-medium text-slate-800 mb-2">Define the mapping between attributes in your Application <span className="font-semibold">{formData.displayName || 'your app'}</span> and IGA</h3>
+        <p className="text-slate-600 mb-6">E.g. "Email Address" in your Application {formData.displayName || 'your app'} maps to "Email" in IGA.</p>
 
         {/* Visual Mapping Diagram */}
         <div className="bg-slate-50 rounded-xl p-6 mb-8">
@@ -273,7 +282,7 @@ export default function Questionnaire() {
             </div>
           </div>
           <div className="flex-1">
-            <label className="block text-xs text-slate-500 mb-2">User attributes in application Ariba*</label>
+            <label className="block text-xs text-slate-500 mb-2">User attributes in application {formData.displayName || 'your app'}*</label>
             <div className="relative">
               <select className="w-full px-4 py-3 border border-slate-300 rounded-lg appearance-none focus:outline-none focus:border-blue-500 bg-white">
                 <option>Entitlement Name</option>
@@ -292,7 +301,7 @@ export default function Questionnaire() {
       {/* Entitlement Types */}
       <div className="border-t border-slate-200 pt-8">
         <h3 className="text-lg font-medium text-slate-800 mb-2">
-          Identify the Entitlement types and corresponding attributes in your Application <span className="font-semibold">Ariba</span>. Usually these are multi-valued attribute.
+          Identify the Entitlement types and corresponding attributes in your Application <span className="font-semibold">{formData.displayName || 'your app'}</span>. Usually these are multi-valued attribute.
         </h3>
         <p className="text-slate-500 text-sm mb-4">E.g. "Role Memberships", "Group memberships" etc.</p>
         
@@ -396,7 +405,7 @@ export default function Questionnaire() {
 
   const renderRequestableRoles = () => (
     <div className="space-y-6">
-      <h3 className="text-lg font-medium text-slate-800">Requestable Roles for <span className="font-semibold">Ariba</span></h3>
+      <h3 className="text-lg font-medium text-slate-800">Requestable Roles for <span className="font-semibold">{formData.displayName || 'your app'}</span></h3>
       <p className="text-slate-600">Define which roles can be requested by users in the access request process.</p>
 
       <div className="border border-slate-200 rounded-lg overflow-hidden">
@@ -428,7 +437,7 @@ export default function Questionnaire() {
         <ArrowLeft size={20} />
       </button>
 
-      <h1 className="text-2xl font-bold text-slate-800 mb-2">Ariba's Information Collected</h1>
+      <h1 className="text-2xl font-bold text-slate-800 mb-2">{formData.displayName || 'Application'}'s Information Collected</h1>
       <p className="text-slate-600 mb-8">Application is now ready for onboarding to SailPoint IdentityIQ.</p>
 
       <div className="grid grid-cols-3 gap-6 mb-8">
@@ -494,7 +503,7 @@ export default function Questionnaire() {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-slate-800">IGA Onboarding: Ariba</h1>
+        <h1 className="text-2xl font-bold text-slate-800">IGA Onboarding: {formData.displayName || 'New Application'}</h1>
         <div className="relative">
           <label className="block text-xs text-slate-500 mb-1">IGA Product</label>
           <select value={selectedIgaProduct} onChange={(e) => setSelectedIgaProduct(e.target.value)} className="appearance-none px-4 py-2 pr-10 border border-slate-300 rounded-lg bg-white">
